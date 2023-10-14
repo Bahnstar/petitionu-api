@@ -14,12 +14,9 @@ import (
 )
 
 func RequireAuth(c *gin.Context) {
-	// get the cookie off req
 	tokenString := c.GetHeader("Authorization")
 
-	// decode/validate it
 	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
@@ -32,7 +29,6 @@ func RequireAuth(c *gin.Context) {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "token expired"})
 		}
 
-		// Find the user with token sub
 		var user models.User
 		initializers.DB.First(&user, claims["sub"])
 
@@ -40,10 +36,8 @@ func RequireAuth(c *gin.Context) {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
 		}
 
-		// Attach to req
 		c.Set("user", user)
 
-		// continue
 		c.Next()
 	} else {
 		c.AbortWithStatus(http.StatusUnauthorized)
