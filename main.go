@@ -15,11 +15,24 @@ func init() {
 }
 
 func main() {
-	r := gin.Default()
+	router := gin.Default()
 
-	r.POST("/sign-up", controllers.SignUp)
-	r.POST("/login", controllers.Login)
-	r.GET("/validate", middleware.RequireAuth, controllers.Validate)
+	router.POST("/sign-up", controllers.SignUp)
+	router.POST("/login", controllers.Login)
+	router.GET("/validate", middleware.RequireAuth, controllers.Validate)
 
-	r.Run()
+	users := router.Group("/users", middleware.RequireAuth)
+	{
+		users.GET("/", controllers.GetUsers)
+		users.GET("/:id", controllers.GetUser)
+	}
+
+	organizations := router.Group("/organizations", middleware.RequireAuth)
+	{
+		organizations.GET("/", controllers.GetOrganizations)
+		organizations.GET("/:id", controllers.GetOrganization)
+		organizations.POST("/", controllers.CreateOrgraniztion)
+	}
+
+	router.Run()
 }
