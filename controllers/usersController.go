@@ -14,7 +14,6 @@ import (
 )
 
 func SignUp(c *gin.Context) {
-	// get the email/pass off req body
 	var body struct {
 		Email    string
 		Password string
@@ -25,7 +24,6 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	// Hash the password
 	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
 
 	if err != nil {
@@ -33,7 +31,6 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	// create the user
 	user := models.User{Email: body.Email, Password: string(hash)}
 	result := initializers.DB.Create(&user)
 
@@ -42,13 +39,11 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	// Respond
 	c.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
 
 }
 
 func Login(c *gin.Context) {
-	// get the email/pass off req body
 	var body struct {
 		Email    string
 		Password string
@@ -58,7 +53,6 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
 		return
 	}
-	// look up the User
 	var user models.User
 	initializers.DB.First(&user, "email = ?", body.Email)
 
@@ -67,7 +61,6 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// check the password with Hash
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
 
 	if err != nil {
@@ -75,7 +68,6 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Generate a JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": user.ID,
 		"exp": time.Now().Add(time.Hour * 24).Unix(),
@@ -88,7 +80,6 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// send it back
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("Authorization", tokenString, 3600*24, "", "", false, true)
 
@@ -100,4 +91,27 @@ func Validate(c *gin.Context) {
 	user, _ := c.Get("user")
 
 	c.JSON(http.StatusOK, gin.H{"message": user})
+}
+
+func GetUsers(c *gin.Context) {
+	var users []models.User
+
+	if result := initializers.DB.Find(&users); result.Error != nil {
+		c.AbortWithError(http.StatusNotFound, result.Error)
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
+}
+
+func GetUser(c *gin.Context) {
+	id := c.Param("id")
+
+	var user models.User
+	if result := initializers.DB.First(&user, id); result.Error != nil {
+		c.AbortWithError(http.StatusNotFound, result.Error)
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }
