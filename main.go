@@ -27,11 +27,12 @@ func main() {
 		users.GET("/:id", controllers.GetUser)
 	}
 
-	organizations := router.Group("/organizations", middleware.RequireAuth)
+	organizations := router.Group("/organizations")
 	{
-		organizations.GET("/", controllers.GetOrganizations)
+		organizations.GET("", controllers.GetOrganizations)
 		organizations.GET("/:id", controllers.GetOrganization)
-		organizations.POST("/", controllers.CreateOrgraniztion)
+		organizations.POST("", controllers.CreateOrganization)
+		organizations.PATCH("/:id", controllers.UpdateOrganization)
 	}
 
 	router.Run()
