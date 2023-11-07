@@ -9,6 +9,12 @@ import (
 )
 
 type CreatePreferenceBody struct {
+	Name   string `binding:"required"`
+	Value  string
+	UserId uint `binding:"required"`
+}
+
+type UpdatePreferenceBody struct {
 	Name   string
 	Value  string
 	UserId uint
@@ -44,7 +50,14 @@ func CreatePreference(c *gin.Context) {
 		return
 	}
 
-	preference := models.Preference{Name: body.Name, Value: body.Value, UserId: body.UserId}
+	var user models.User
+
+	if result := initializers.DB.First(&user, body.UserId); result.Error != nil {
+		c.AbortWithError(http.StatusNotFound, result.Error)
+		return
+	}
+
+	preference := models.Preference{Name: body.Name, Value: body.Value, UserId: user.ID}
 
 	result := initializers.DB.Create(&preference)
 
@@ -54,4 +67,38 @@ func CreatePreference(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Preference created successfully"})
+}
+
+func UpdatePreference(c *gin.Context) {
+	id := c.Param("id")
+	var body CreatePreferenceBody
+
+	if c.BindJSON(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body in update organization"})
+	}
+
+	var preference models.Preference
+	if result := initializers.DB.First(&preference, id); result.Error != nil {
+		c.AbortWithError(http.StatusNotFound, result.Error)
+		return
+	}
+
+	initializers.DB.Model(&preference).Updates(models.Preference{
+		Name:   body.Name,
+		Value:  body.Value,
+		UserId: body.UserId,
+	})
+}
+
+func DeletePreference(c *gin.Context) {
+	id := c.Param("id")
+	var preference models.Preference
+
+	if result := initializers.DB.First(&preference, id); result.Error != nil {
+		c.AbortWithError(http.StatusNotFound, result.Error)
+	}
+
+	initializers.DB.Delete(&preference)
+
+	c.JSON(http.StatusOK, gin.H{"data": "Preference deleted successfully"})
 }
