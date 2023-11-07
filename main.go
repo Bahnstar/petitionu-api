@@ -21,10 +21,12 @@ func main() {
 	router.POST("/login", controllers.Login)
 	router.GET("/validate", middleware.RequireAuth, controllers.Validate)
 
-	users := router.Group("/users", middleware.RequireAuth)
+	users := router.Group("/users")
 	{
-		users.GET("/", controllers.GetUsers)
+		users.GET("", controllers.GetUsers)
 		users.GET("/:id", controllers.GetUser)
+		users.PATCH("/:id", controllers.UpdateUser)
+		users.DELETE("/:id", controllers.DeleteUser)
 	}
 
 	organizations := router.Group("/organizations")
@@ -33,6 +35,16 @@ func main() {
 		organizations.GET("/:id", controllers.GetOrganization)
 		organizations.POST("", controllers.CreateOrganization)
 		organizations.PATCH("/:id", controllers.UpdateOrganization)
+		organizations.DELETE("/:id", controllers.DeleteOrganization)
+	}
+
+	preferences := router.Group("/preferences")
+	{
+		preferences.GET("", controllers.GetPreferences)
+		preferences.GET("/:id", controllers.GetPreference)
+		preferences.POST("", controllers.CreatePreference)
+		preferences.PATCH("/:id", controllers.UpdatePreference)
+		preferences.DELETE("/:id", controllers.DeletePreference)
 	}
 
 	router.Run()
