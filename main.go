@@ -47,5 +47,23 @@ func main() {
 		preferences.DELETE("/:id", controllers.DeletePreference)
 	}
 
+	petitions := router.Group("/petitions")
+	{
+		petitions.GET("", controllers.GetPetitions)
+		petitions.GET("/:id", controllers.GetPetition)
+		petitions.POST("", controllers.CreatePetition)
+		petitions.PATCH("/:id", controllers.UpdatePetition)
+		petitions.DELETE("/:id", controllers.DeletePetition)
+	}
+
+	comments := router.Group("/comments")
+	{
+		comments.GET("", controllers.GetComments)
+		comments.GET("/:id", controllers.GetComment)
+		comments.POST("", controllers.CreateComment)
+		comments.PATCH("/:id", controllers.UpdateComment)
+		comments.DELETE("/:id", controllers.DeleteComment)
+	}
+
 	router.Run()
 }
