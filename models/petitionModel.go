@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Petition struct {
 	gorm.Model
-	ownerId        int
+	OwnerId        int
 	Name           string
 	Description    string
 	OrganizationId uint
