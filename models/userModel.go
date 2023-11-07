@@ -9,6 +9,6 @@ type User struct {
 	FirstName      string
 	LastName       string
 	OrganizationId uint
-	Preferences    []Preference
-	Petitions      []Petition `gorm:"many2many:user_petitions;"`
+	Preferences    []Preference `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Petitions      []Petition   `gorm:"many2many:user_petitions;"`
 }

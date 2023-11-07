@@ -8,5 +8,5 @@ type Petition struct {
 	Name           string
 	Description    string
 	OrganizationId uint
-	Comments       []Comment
+	Comments       []Comment `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }

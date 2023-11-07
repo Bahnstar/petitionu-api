@@ -6,6 +6,6 @@ type Organization struct {
 	gorm.Model
 	Name        string
 	Description string
-	Users       []User
-	Petitions   []Petition
+	Users       []User     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Petitions   []Petition `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
