@@ -71,10 +71,10 @@ func CreatePreference(c *gin.Context) {
 
 func UpdatePreference(c *gin.Context) {
 	id := c.Param("id")
-	var body CreatePreferenceBody
+	var body UpdatePreferenceBody
 
 	if c.BindJSON(&body) != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body in update organization"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body in update preference"})
 	}
 
 	var preference models.Preference
@@ -88,6 +88,8 @@ func UpdatePreference(c *gin.Context) {
 		Value:  body.Value,
 		UserId: body.UserId,
 	})
+
+	c.JSON(http.StatusOK, gin.H{"data": &preference})
 }
 
 func DeletePreference(c *gin.Context) {
