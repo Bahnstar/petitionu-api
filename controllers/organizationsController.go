@@ -8,7 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type OrganizationBody struct {
+type CreateOrganizationBody struct {
+	Name        string `binding:"required"`
+	Description string `binding:"required"`
+	Users       []models.User
+	Petitions   []models.Petition
+}
+
+type UpdateOrganizationBody struct {
 	Name        string
 	Description string
 	Users       []models.User
@@ -18,8 +25,9 @@ type OrganizationBody struct {
 func GetOrganizations(c *gin.Context) {
 	var organizations []models.Organization
 
-	if result := initializers.DB.Find(&organizations); result.Error != nil {
+	if result := initializers.DB.Statement.Preload("Users").Preload("Petitions").Find(&organizations); result.Error != nil {
 		c.AbortWithError(http.StatusNotFound, result.Error)
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": organizations})
@@ -29,7 +37,7 @@ func GetOrganization(c *gin.Context) {
 	id := c.Param("id")
 	var organization models.Organization
 
-	if result := initializers.DB.First(&organization, id); result.Error != nil {
+	if result := initializers.DB.Statement.Preload("Users").Preload("Petitions").First(&organization, id); result.Error != nil {
 		c.AbortWithError(http.StatusNotFound, result.Error)
 		return
 	}
@@ -38,7 +46,7 @@ func GetOrganization(c *gin.Context) {
 }
 
 func CreateOrganization(c *gin.Context) {
-	var body OrganizationBody
+	var body CreateOrganizationBody
 
 	if c.BindJSON(&body) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
@@ -59,7 +67,7 @@ func CreateOrganization(c *gin.Context) {
 
 func UpdateOrganization(c *gin.Context) {
 	id := c.Param("id")
-	var body OrganizationBody
+	var body UpdateOrganizationBody
 
 	if c.BindJSON(&body) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body in update organization"})
