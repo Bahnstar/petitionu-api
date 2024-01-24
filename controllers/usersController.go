@@ -63,6 +63,8 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
+	SendVerification(user.Email)
+
 	c.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
 
 }

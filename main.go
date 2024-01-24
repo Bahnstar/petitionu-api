@@ -65,5 +65,11 @@ func main() {
 		comments.DELETE("/:id", controllers.DeleteComment)
 	}
 
+	verification := router.Group("/verify")
+	{
+		verification.GET("", controllers.VerifyEmail)
+		verification.GET("/:id", controllers.DnsTest)
+	}
+
 	router.Run()
 }
