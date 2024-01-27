@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/likexian/whois"
 	"github.com/likexian/whois-parser"
@@ -15,14 +16,18 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-func DnsTest(c *gin.Context) {
-	raw, err := whois.Whois("southern.edu")
+func GetOrganizationFromDNS(c *gin.Context) {
+  email := "qc@students.llu.edu"
+  email_domain := strings.Split(email, "@")
+  split_email := strings.Split(email_domain[1], ".")
+  domain := strings.Join(split_email[len(split_email) - 2:], ".")
+  fmt.Println(domain)
+	raw, err := whois.Whois(domain)
 	if err != nil {
 		panic(err)
 	}
 
 	parsed_whois, err := whoisparser.Parse(raw)
-	fmt.Println(parsed_whois)
 	if err != nil {
 		panic(err)
 	}

@@ -68,7 +68,7 @@ func main() {
 	verification := router.Group("/verify")
 	{
 		verification.GET("", controllers.VerifyEmail)
-		verification.GET("/:id", controllers.DnsTest)
+		verification.GET("/:id", controllers.GetOrganizationFromDNS)
 	}
 
 	router.Run()
