@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/Bahnstar/petitionu-api/helpers"
 	"github.com/Bahnstar/petitionu-api/initializers"
 	"github.com/Bahnstar/petitionu-api/models"
 
@@ -18,7 +19,7 @@ type CreateUserBody struct {
 	Password       string `binding:"required"`
 	FirstName      string
 	LastName       string
-	OrganizationId uint `binding:"required"`
+	OrganizationId uint
 	Preferences    []models.Preference
 	Petitions      []models.Petition
 }
@@ -42,17 +43,21 @@ func SignUp(c *gin.Context) {
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
 
+	email_domain := helpers.GetDomainFromEmail(body.Email)
 	var organization models.Organization
 
-	if organization_result := initializers.DB.First(&organization, body.OrganizationId); organization_result.Error != nil {
-		c.AbortWithError(http.StatusNotFound, organization_result.Error)
-		return
+	if organization_result := initializers.DB.Where("domain = ?", email_domain).First(&organization); organization_result.Error != nil {
+		organization_name := helpers.GetOrganizationFromDNS(email_domain)
+
+		CreateOrganizationFromSignUp(c, organization_name, email_domain)
+		if organization_result := initializers.DB.Where("domain = ?", email_domain).First(&organization); organization_result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find Organization"})
+		}
 	}
 
 	user := models.User{Email: body.Email, Password: string(hash), OrganizationId: organization.ID}
@@ -63,10 +68,13 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	SendVerification(user.Email)
+	helpers.SendVerificationEmail(user.Email)
 
 	c.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
+}
 
+func GetOrganizationFromDNS(s string) {
+	panic("unimplemented")
 }
 
 func Login(c *gin.Context) {
@@ -88,7 +96,6 @@ func Login(c *gin.Context) {
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
-
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password"})
 		return
@@ -100,7 +107,6 @@ func Login(c *gin.Context) {
 	})
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
@@ -110,7 +116,6 @@ func Login(c *gin.Context) {
 	c.SetCookie("Authorization", tokenString, 3600*24, "", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{"token": tokenString})
-
 }
 
 func Validate(c *gin.Context) {

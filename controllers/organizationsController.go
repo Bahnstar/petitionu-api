@@ -10,7 +10,8 @@ import (
 
 type CreateOrganizationBody struct {
 	Name        string `binding:"required"`
-	Description string `binding:"required"`
+	Description string
+  Domain      string `binding:"required"`
 	Users       []models.User
 	Petitions   []models.Petition
 }
@@ -18,6 +19,7 @@ type CreateOrganizationBody struct {
 type UpdateOrganizationBody struct {
 	Name        string
 	Description string
+  Domain      string
 	Users       []models.User
 	Petitions   []models.Petition
 }
@@ -53,7 +55,7 @@ func CreateOrganization(c *gin.Context) {
 		return
 	}
 
-	organization := models.Organization{Name: body.Name, Description: body.Description, Users: body.Users, Petitions: body.Petitions}
+  organization := models.Organization{Name: body.Name, Description: body.Description, Domain: body.Domain, Users: body.Users, Petitions: body.Petitions}
 
 	result := initializers.DB.Create(&organization)
 
@@ -61,6 +63,18 @@ func CreateOrganization(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create organization"})
 		return
 	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Organization created successfully"})
+}
+
+func CreateOrganizationFromSignUp(c *gin.Context, name string, domain string) {
+  organization := models.Organization{Name: name, Domain: domain}
+  
+  result := initializers.DB.Create(&organization)
+
+  if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create organization"})
+  }
 
 	c.JSON(http.StatusOK, gin.H{"message": "Organization created successfully"})
 }
@@ -83,6 +97,7 @@ func UpdateOrganization(c *gin.Context) {
 	initializers.DB.Model(&organization).Updates(models.Organization{
 		Name:        body.Name,
 		Description: body.Description,
+    Domain:      body.Domain,
 		Users:       body.Users,
 		Petitions:   body.Petitions,
 	})
