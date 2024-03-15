@@ -147,6 +147,27 @@ func GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+type UserPetitionBody struct {
+	UserId       uint
+	PetitionId   uint
+	Relationship models.Relationship
+	Bookmarked   bool
+}
+
+func GetUserBookmarks(c *gin.Context) {
+	id := c.Param("id")
+
+	var petitions []UserPetitionBody
+	initializers.DB.Raw("Select * FROM user_petitions WHERE user_id = ? AND bookmarked = ?", id, true).Scan(&petitions)
+	if len(petitions) == 0 {
+		empty := make([]UserPetitionBody, 0)
+		c.JSON(http.StatusNotFound, empty)
+		return
+	}
+
+	c.JSON(http.StatusOK, petitions)
+}
+
 func UpdateUser(c *gin.Context) {
 	id := c.Param("id")
 	var body UpdateUserBody

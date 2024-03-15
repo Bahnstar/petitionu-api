@@ -25,6 +25,7 @@ func main() {
 	{
 		users.GET("", controllers.GetUsers)
 		users.GET("/:id", controllers.GetUser)
+		users.GET("/:id/bookmarks", controllers.GetUserBookmarks)
 		users.PATCH("/:id", controllers.UpdateUser)
 		users.DELETE("/:id", controllers.DeleteUser)
 	}

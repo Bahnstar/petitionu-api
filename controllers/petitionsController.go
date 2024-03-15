@@ -9,7 +9,7 @@ import (
 )
 
 type CreatePetitionBody struct {
-	OwnerId        int    `binding:"required"`
+	OwnerId        uint   `binding:"required"`
 	Name           string `binding:"required"`
 	Description    string
 	OrganizationId uint `binding:"required"`
@@ -17,7 +17,7 @@ type CreatePetitionBody struct {
 }
 
 type UpdatePetitionBody struct {
-	OwnerId        int
+	OwnerId        uint
 	Name           string
 	Description    string
 	OrganizationId uint
@@ -56,7 +56,7 @@ func CreatePetition(c *gin.Context) {
 
 	var user models.User
 
-	if result := initializers.DB.First(&user, body.OwnerId); result.Error != nil {
+	if result := initializers.DB.First(&user, int(body.OwnerId)); result.Error != nil {
 		c.AbortWithError(http.StatusNotFound, result.Error)
 	}
 
@@ -68,7 +68,7 @@ func CreatePetition(c *gin.Context) {
 	}
 
 	petition := models.Petition{
-		OwnerId:        int(body.OwnerId),
+		OwnerId:        body.OwnerId,
 		Name:           body.Name,
 		Description:    body.Description,
 		OrganizationId: organization.ID,
@@ -82,7 +82,12 @@ func CreatePetition(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Preference created successfully"})
+	err := initializers.DB.Model(&user).Association("Petitions").Append(&petition)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add petition in user_petitions join table"})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Petition created successfully"})
 }
 
 func UpdatePetition(c *gin.Context) {
@@ -108,7 +113,7 @@ func UpdatePetition(c *gin.Context) {
 	}
 
 	initializers.DB.Model(&petition).Updates(models.Petition{
-		OwnerId:        int(body.OwnerId),
+		OwnerId:        body.OwnerId,
 		Name:           body.Name,
 		Description:    body.Description,
 		OrganizationId: body.OrganizationId,
