@@ -82,8 +82,15 @@ func CreatePetition(c *gin.Context) {
 		return
 	}
 
-	err := initializers.DB.Model(&user).Association("Petitions").Append(&petition)
-	if err != nil {
+	userPetition := models.UserPetition{
+		UserID:       int(user.ID),
+		PetitionID:   int(petition.ID),
+		Relationship: models.Owner,
+		Bookmarked:   false,
+	}
+
+	result = initializers.DB.Create(&userPetition)
+	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add petition in user_petitions join table"})
 	}
 
